@@ -16,12 +16,13 @@
   },
   "main": "index.js",
   "scripts": {
-    "build": "tsc && gulp build:icons",
-    "dev": "tsc --watch",
+    "build": "tsc -p tsconfig.json && npm run copy:icons",
+    "copy:icons": "copyfiles -u 1 \"nodes/**/*.svg\" dist/",
+    "dev": "tsc -p tsconfig.json --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
-    "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js"
+    "prepublishOnly": "npm run build && npm run lint"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
@@ -35,8 +36,8 @@
   "devDependencies": {
     "@types/node": "^18.16.16",
     "@typescript-eslint/parser": "^6.7.0",
+    "copyfiles": "^2.4.1",
     "eslint-plugin-n8n-nodes-base": "^1.16.0",
-    "gulp": "^4.0.2",
     "n8n-workflow": "*",
     "prettier": "^3.0.3",
     "typescript": "^5.1.6"
