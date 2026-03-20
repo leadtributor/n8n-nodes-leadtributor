@@ -6,7 +6,8 @@ import type {
 	IHttpRequestOptions,
 	IDataObject,
 } from 'n8n-workflow';
-import { NodeApiError, NodeConnectionType, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { JsonObject } from 'n8n-workflow';
 
 export class Leadtributor implements INodeType {
 	description: INodeTypeDescription = {
@@ -18,8 +19,8 @@ export class Leadtributor implements INodeType {
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Interact with the Leadtributor.cloud API for lead management',
 		defaults: { name: 'Leadtributor' },
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: ['main'],
+		outputs: ['main'],
 		credentials: [{ name: 'leadtributorApi', required: true }],
 		properties: [
 			// ── RESOURCE ──────────────────────────────────────────────────────
@@ -836,7 +837,7 @@ export class Leadtributor implements INodeType {
 					continue;
 				}
 				if (error instanceof NodeOperationError) throw error;
-				throw new NodeApiError(this.getNode(), error as Error, { itemIndex: i });
+				throw new NodeApiError(this.getNode(), error as JsonObject, { itemIndex: i });
 			}
 		}
 
