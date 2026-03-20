@@ -17,7 +17,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run copy:icons",
-    "copy:icons": "node -e \"const {copyFileSync,mkdirSync}=require('fs');mkdirSync('dist/nodes/Leadtributor',{recursive:true});copyFileSync('nodes/Leadtributor/leadtributor.svg','dist/nodes/Leadtributor/leadtributor.svg')\"",
+    "copy:icons": "node scripts/copy-icons.js",
     "dev": "tsc -p tsconfig.json --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
