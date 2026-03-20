@@ -8,7 +8,7 @@ import type {
 export class LeadtributorApi implements ICredentialType {
 	name = 'leadtributorApi';
 	displayName = 'Leadtributor API';
-	documentationUrl = 'https://api.leadtributor.cloud';
+	documentationUrl = 'https://developer.leadtributor.cloud';
 
 	properties: INodeProperties[] = [
 		{

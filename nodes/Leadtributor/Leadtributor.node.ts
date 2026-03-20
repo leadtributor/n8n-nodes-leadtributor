@@ -11,14 +11,14 @@ import type { JsonObject } from 'n8n-workflow';
 
 export class Leadtributor implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Leadtributor',
+		displayName: 'leadtributor.cloud',
 		name: 'leadtributor',
 		icon: 'file:leadtributor.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with the Leadtributor.cloud API for lead management',
-		defaults: { name: 'Leadtributor' },
+		description: 'Interact with the leadtributor.cloud API for lead management',
+		defaults: { name: 'leadtributor.cloud' },
 		inputs: ['main'],
 		outputs: ['main'],
 		credentials: [{ name: 'leadtributorApi', required: true }],
