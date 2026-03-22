@@ -1,0 +1,48 @@
+{
+  "name": "n8n-nodes-leadtributor",
+  "version": "0.1.0",
+  "description": "n8n community node for leadtributor.cloud integration",
+  "keywords": [
+    "n8n-community-node-package"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/leadtributor/n8n-nodes-leadtributor",
+  "author": {
+    "name": "leadtributor GmbH"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leadtributor/n8n-nodes-leadtributor.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && npm run copy:icons",
+    "copy:icons": "node scripts/copy-icons.js",
+    "dev": "tsc -p tsconfig.json --watch",
+    "format": "prettier nodes credentials --write",
+    "lint": "eslint nodes credentials package.json",
+    "lintfix": "eslint nodes credentials package.json --fix",
+    "prepublishOnly": "npm run build && npm run lint"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/LeadtributorApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Leadtributor/Leadtributor.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.16",
+    "@typescript-eslint/parser": "^6.7.0",
+    "copyfiles": "^2.4.1",
+    "eslint-plugin-n8n-nodes-base": "^1.16.0",
+    "n8n-workflow": "*",
+    "prettier": "^3.0.3",
+    "typescript": "^5.1.6"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}

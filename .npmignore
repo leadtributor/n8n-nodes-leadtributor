@@ -1,0 +1,19 @@
+# Source code (TypeScript)
+/nodes/
+/credentials/
+/scripts/
+
+# Config & tooling
+tsconfig.json
+.eslintrc.js
+.prettierrc
+.prettierrc.js
+.editorconfig
+
+# Development
+node_modules/
+.git/
+.github/
+
+# Source maps
+*.map
