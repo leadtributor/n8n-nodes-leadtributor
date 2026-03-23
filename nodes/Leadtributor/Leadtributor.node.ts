@@ -66,10 +66,10 @@ export class Leadtributor implements INodeType {
 						action: 'Get many leads',
 					},
 					{
-						name: 'Modify',
-						value: 'modify',
-						description: 'Modify the field lists of a lead',
-						action: 'Modify a lead',
+						name: 'Update',
+						value: 'update',
+						description: 'Update the field lists of a lead',
+						action: 'Update a lead',
 					},
 				],
 				default: 'getMany',
@@ -126,10 +126,10 @@ export class Leadtributor implements INodeType {
 						action: 'Get many notes',
 					},
 					{
-						name: 'Get Many by Lead',
+						name: 'Get Many for Lead',
 						value: 'getManyByLead',
 						description: 'List notes of a specific lead',
-						action: 'Get many notes by lead',
+						action: 'Get many notes for a lead',
 					},
 				],
 				default: 'getMany',
@@ -152,7 +152,7 @@ export class Leadtributor implements INodeType {
 					{
 						name: 'Unsubscribe',
 						value: 'unsubscribe',
-						description: 'Cancel a webhook subscription by hook ID',
+						description: 'Unsubscribe from a webhook event by hook ID',
 						action: 'Unsubscribe from a webhook',
 					},
 				],
@@ -170,7 +170,7 @@ export class Leadtributor implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['lead'],
-						operation: ['get', 'modify'],
+						operation: ['get', 'update'],
 					},
 				},
 			},
@@ -219,7 +219,7 @@ export class Leadtributor implements INodeType {
 				},
 			},
 
-			// ── LEAD PROSPECT FIELDS (create / modify) ────────────────────────
+			// ── LEAD PROSPECT FIELDS (create / update) ────────────────────────
 			{
 				displayName: 'Prospect Fields',
 				name: 'prospectFields',
@@ -230,12 +230,12 @@ export class Leadtributor implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['lead'],
-						operation: ['create', 'modify'],
+						operation: ['create', 'update'],
 					},
 				},
 			},
 
-			// ── LEAD INTEREST FIELDS (create / modify) ────────────────────────
+			// ── LEAD INTEREST FIELDS (create / update) ────────────────────────
 			{
 				displayName: 'Interest Fields',
 				name: 'interestFields',
@@ -246,7 +246,7 @@ export class Leadtributor implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['lead'],
-						operation: ['create', 'modify'],
+						operation: ['create', 'update'],
 					},
 				},
 			},
@@ -636,7 +636,7 @@ export class Leadtributor implements INodeType {
 						} while (continuation);
 
 						responseData = allResults;
-					} else if (operation === 'modify') {
+					} else if (operation === 'update') {
 						const leadId = this.getNodeParameter('leadId', i) as string;
 						const prospectFields = this.getNodeParameter('prospectFields', i) as IDataObject;
 						const interestFields = this.getNodeParameter('interestFields', i) as IDataObject;
