@@ -630,7 +630,7 @@ export class Leadtributor implements INodeType {
 
 							const pageData = Array.isArray(response.body) ? response.body : [];
 							allResults.push(...pageData);
-							continuation = response.headers['x-continuation'];
+							continuation = response.headers['X-Continuation'];
 
 							if (!returnAll) break;
 						} while (continuation);
@@ -747,7 +747,7 @@ export class Leadtributor implements INodeType {
 
 							const pageData = Array.isArray(response.body) ? response.body : [];
 							allResults.push(...pageData);
-							continuation = response.headers['x-continuation'];
+							continuation = response.headers['X-Continuation'];
 
 							if (!returnAll) break;
 						} while (continuation);
