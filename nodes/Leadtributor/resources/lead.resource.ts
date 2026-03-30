@@ -280,8 +280,7 @@ const description: INodeProperties[] = [
 		name: 'returnAll',
 		type: 'boolean',
 		default: false,
-		description:
-			'Whether to fetch all pages of results automatically. When disabled, only one page is returned.',
+		description: 'Whether to return all results or only up to a given limit',
 		displayOptions: {
 			show: {
 				resource: ['lead'],
