@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-leadtributor",
+  "name": "@leadtributor/n8n-nodes-leadtributor",
   "version": "0.1.0",
   "description": "n8n community node for leadtributor.cloud integration",
   "keywords": [
