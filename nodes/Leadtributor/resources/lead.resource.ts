@@ -467,7 +467,7 @@ async function execute(
 
 			const pageData = Array.isArray(response.body) ? response.body : [];
 			allResults.push(...pageData);
-			continuation = response.headers['X-Continuation'];
+			continuation = response.headers['x-continuation'];
 
 			if (!returnAll) break;
 		} while (continuation);
