@@ -106,7 +106,7 @@ function buildSectionPayload(
 			if (fieldDef.multiSelectAllowed) {
 				value = rawValue.split(',').map((s) => s.trim()).filter(Boolean);
 			} else {
-				type = 'text:singleline'
+				type = 'text:singleline';
 			}
 		}
 
@@ -151,6 +151,12 @@ const description: INodeProperties[] = [
 				description: 'Update the field lists of a lead',
 				action: 'Update a lead',
 			},
+			{
+				name: 'Assign to Sales Partner',
+				value: 'assignToSalesPartner',
+				description: 'Directly assign a lead to a sales partner',
+				action: 'Assign a lead to a sales partner',
+			},
 		],
 		default: 'getMany',
 	},
@@ -189,7 +195,7 @@ const description: INodeProperties[] = [
 		},
 	},
 
-	// ── get / update ──────────────────────────────────────────────────────────
+	// ── get / update / assignToSalesPartner ──────────────────────────────────
 	{
 		displayName: 'Lead ID',
 		name: 'leadId',
@@ -200,7 +206,7 @@ const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['lead'],
-				operation: ['get', 'update'],
+				operation: ['get', 'update', 'assignToSalesPartner'],
 			},
 		},
 	},
@@ -229,6 +235,35 @@ const description: INodeProperties[] = [
 			show: {
 				resource: ['lead'],
 				operation: ['update'],
+			},
+		},
+	},
+
+	// ── assignToSalesPartner ─────────────────────────────────────────────────
+	{
+		displayName: 'Sales Partner ID',
+		name: 'salesPartnerId',
+		type: 'string',
+		required: true,
+		default: '',
+		description: 'The unique ID of the sales partner to assign the lead to',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['assignToSalesPartner'],
+			},
+		},
+	},
+	{
+		displayName: 'Sales Pipeline ID',
+		name: 'salesPipelineId',
+		type: 'string',
+		default: '',
+		description: 'Optional ID of the sales pipeline to use for this assignment',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['assignToSalesPartner'],
 			},
 		},
 	},
@@ -455,6 +490,22 @@ async function execute(
 			json: true,
 		});
 		return { success: true, leadId };
+	}
+
+	if (operation === 'assignToSalesPartner') {
+		const leadId = this.getNodeParameter('leadId', i) as string;
+		const salesPartnerId = this.getNodeParameter('salesPartnerId', i) as string;
+		const salesPipelineId = this.getNodeParameter('salesPipelineId', i) as string;
+
+		const body: IDataObject = { salesPartnerId };
+		if (salesPipelineId) body.salesPipelineId = salesPipelineId;
+
+		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'POST',
+			url: `${baseUrl}/leads/${encodeURIComponent(leadId)}/commissions`,
+			body,
+			json: true,
+		});
 	}
 
 	throw new NodeOperationError(this.getNode(), `Unknown lead operation: ${operation}`, {
