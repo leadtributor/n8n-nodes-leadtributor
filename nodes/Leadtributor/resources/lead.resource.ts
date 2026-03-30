@@ -1,11 +1,123 @@
 import type {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeProperties,
+	INodePropertyOptions,
 	IDataObject,
 	IHttpRequestOptions,
+	ResourceMapperFields,
+	ResourceMapperField,
+	FieldType,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import type { ResourceModule } from './types';
+
+// ── Internal types for the Leadtributor form API ──────────────────────────────
+
+interface LtFormField {
+	type: string;
+	value: unknown;
+	items?: string[];
+	multiSelectAllowed?: boolean;
+}
+
+interface LtFormSection {
+	fields: Record<string, LtFormField>;
+	required: string[];
+	fieldOrder: string[];
+}
+
+interface LtForm {
+	id: string;
+	name: string;
+	definition: {
+		prospect: LtFormSection;
+		interest: LtFormSection;
+	};
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function fetchFirstForm(context: ILoadOptionsFunctions | IExecuteFunctions, baseUrl: string): Promise<LtForm> {
+	const forms = (await context.helpers.httpRequestWithAuthentication.call(
+		context,
+		'leadtributorApi',
+		{ method: 'GET', url: `${baseUrl}/forms`, json: true },
+	)) as LtForm[];
+	if (!forms.length) {
+		throw new Error('No forms found in your Leadtributor account.');
+	}
+	return forms[0];
+}
+
+function toResourceMapperField(
+	name: string,
+	field: LtFormField,
+	required: string[],
+): ResourceMapperField {
+	let type: FieldType = 'string';
+	let options: INodePropertyOptions[] | undefined;
+
+	if (field.type.startsWith('bool:')) {
+		type = 'boolean';
+	} else if (field.type.startsWith('number:')) {
+		type = 'number';
+	} else if (field.type === 'text:list' && !field.multiSelectAllowed && field.items) {
+		type = 'options';
+		options = field.items.map((item) => ({ name: item, value: item }));
+	}
+
+	return {
+		id: name,
+		displayName: name,
+		required: required.includes(name),
+		defaultMatch: false,
+		display: true,
+		type,
+		...(options ? { options } : {}),
+	};
+}
+
+function sectionToResourceMapperFields(section: LtFormSection): ResourceMapperFields {
+	return {
+		fields: section.fieldOrder
+			.filter((name) => name in section.fields)
+			.map((name) => toResourceMapperField(name, section.fields[name], section.required)),
+	};
+}
+
+function buildSectionPayload(
+	mapperValue: IDataObject,
+	section: LtFormSection,
+): { fields: Record<string, { type: string; value: unknown }>; fieldOrder: string[] } {
+	const fields: Record<string, { type: string; value: unknown }> = {};
+
+	for (const [key, rawValue] of Object.entries(mapperValue)) {
+		if (rawValue === null || rawValue === undefined) continue;
+		const fieldDef = section.fields[key];
+		if (!fieldDef) continue;
+
+		let value: unknown = rawValue, type: string = fieldDef.type;
+		if (fieldDef.type === 'number:natural') {
+			value = Number(rawValue)?.toString();
+		}
+		// Multi-select lists are entered as comma-separated strings → convert to array
+		if (fieldDef.type === 'text:list' && typeof rawValue === 'string') {
+			if (fieldDef.multiSelectAllowed) {
+				value = rawValue.split(',').map((s) => s.trim()).filter(Boolean);
+			} else {
+				type = 'text:singleline'
+			}
+		}
+
+		fields[key] = { type, value };
+	}
+
+	const fieldOrder = section.fieldOrder.filter((key) => key in fields);
+	return { fields, fieldOrder };
+}
+
+// ── Description ───────────────────────────────────────────────────────────────
 
 const description: INodeProperties[] = [
 	{
@@ -42,6 +154,42 @@ const description: INodeProperties[] = [
 		],
 		default: 'getMany',
 	},
+
+	// ── create ────────────────────────────────────────────────────────────────
+	{
+		displayName: 'Prospect Fields',
+		name: 'prospectMapper',
+		type: 'resourceMapper',
+		default: { mappingMode: 'defineBelow', value: null },
+		displayOptions: { show: { resource: ['lead'], operation: ['create'] } },
+		typeOptions: {
+			resourceMapper: {
+				resourceMapperMethod: 'getProspectFields',
+				mode: 'add',
+				fieldWords: { singular: 'Prospect Field', plural: 'Prospect Fields' },
+				addAllFields: false,
+				noFieldsError: 'No form found. Ensure your Leadtributor account has at least one form configured.',
+			},
+		},
+	},
+	{
+		displayName: 'Interest Fields',
+		name: 'interestMapper',
+		type: 'resourceMapper',
+		default: { mappingMode: 'defineBelow', value: null },
+		displayOptions: { show: { resource: ['lead'], operation: ['create'] } },
+		typeOptions: {
+			resourceMapper: {
+				resourceMapperMethod: 'getInterestFields',
+				mode: 'add',
+				fieldWords: { singular: 'Interest Field', plural: 'Interest Fields' },
+				addAllFields: false,
+				noFieldsError: 'No form found. Ensure your Leadtributor account has at least one form configured.',
+			},
+		},
+	},
+
+	// ── get / update ──────────────────────────────────────────────────────────
 	{
 		displayName: 'Lead ID',
 		name: 'leadId',
@@ -66,7 +214,7 @@ const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['lead'],
-				operation: ['create', 'update'],
+				operation: ['update'],
 			},
 		},
 	},
@@ -80,40 +228,12 @@ const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['lead'],
-				operation: ['create', 'update'],
+				operation: ['update'],
 			},
 		},
 	},
-	{
-		displayName: 'Additional Options',
-		name: 'additionalOptions',
-		type: 'collection',
-		placeholder: 'Add Option',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['lead'],
-				operation: ['create'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Prospect Field Order',
-				name: 'prospectFieldOrder',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of prospect field names in the desired display order',
-				placeholder: 'Anrede,Vorname,Nachname,Anschrift',
-			},
-			{
-				displayName: 'Interest Field Order',
-				name: 'interestFieldOrder',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of interest field names in the desired display order',
-			},
-		],
-	},
+
+	// ── getMany ───────────────────────────────────────────────────────────────
 	{
 		displayName: 'Return All',
 		name: 'returnAll',
@@ -209,6 +329,27 @@ const description: INodeProperties[] = [
 	},
 ];
 
+// ── Methods ───────────────────────────────────────────────────────────────────
+
+const methods = {
+	resourceMapping: {
+		async getProspectFields(this: ILoadOptionsFunctions): Promise<ResourceMapperFields> {
+			const credentials = await this.getCredentials('leadtributorApi');
+			const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
+			const form = await fetchFirstForm(this, baseUrl);
+			return sectionToResourceMapperFields(form.definition.prospect);
+		},
+		async getInterestFields(this: ILoadOptionsFunctions): Promise<ResourceMapperFields> {
+			const credentials = await this.getCredentials('leadtributorApi');
+			const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
+			const form = await fetchFirstForm(this, baseUrl);
+			return sectionToResourceMapperFields(form.definition.interest);
+		},
+	},
+};
+
+// ── Execute ───────────────────────────────────────────────────────────────────
+
 async function execute(
 	this: IExecuteFunctions,
 	i: number,
@@ -216,36 +357,24 @@ async function execute(
 	baseUrl: string,
 ): Promise<unknown> {
 	if (operation === 'create') {
-		const prospectFields = this.getNodeParameter('prospectFields', i) as IDataObject;
-		const interestFields = this.getNodeParameter('interestFields', i) as IDataObject;
-		const additionalOptions = this.getNodeParameter('additionalOptions', i) as IDataObject;
+		const prospectMapper = this.getNodeParameter('prospectMapper', i) as IDataObject;
+		const interestMapper = this.getNodeParameter('interestMapper', i) as IDataObject;
 
-		const body: IDataObject = {
-			prospect: { fields: prospectFields },
-			interest: { fields: interestFields },
-		};
+		const form = await fetchFirstForm(this, baseUrl);
 
-		if (additionalOptions.prospectFieldOrder) {
-			(body.prospect as IDataObject).fieldOrder = (
-				additionalOptions.prospectFieldOrder as string
-			)
-				.split(',')
-				.map((s) => s.trim())
-				.filter(Boolean);
-		}
-		if (additionalOptions.interestFieldOrder) {
-			(body.interest as IDataObject).fieldOrder = (
-				additionalOptions.interestFieldOrder as string
-			)
-				.split(',')
-				.map((s) => s.trim())
-				.filter(Boolean);
-		}
+		const prospect = buildSectionPayload(
+			(prospectMapper.value ?? {}) as IDataObject,
+			form.definition.prospect,
+		);
+		const interest = buildSectionPayload(
+			(interestMapper.value ?? {}) as IDataObject,
+			form.definition.interest,
+		);
 
 		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
 			method: 'POST',
 			url: `${baseUrl}/leads`,
-			body,
+			body: { prospect, interest },
 			json: true,
 		});
 	}
@@ -333,4 +462,4 @@ async function execute(
 	});
 }
 
-export default { displayName: 'Lead', description, execute } satisfies ResourceModule;
+export default { displayName: 'Lead', description, methods, execute } satisfies ResourceModule;

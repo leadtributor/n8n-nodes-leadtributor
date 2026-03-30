@@ -49,6 +49,19 @@ export class Leadtributor implements INodeType {
 		],
 	};
 
+	methods: INodeType['methods'] = {
+		loadOptions: Object.fromEntries(
+			Object.values(Leadtributor.resources).flatMap((r) =>
+				Object.entries(r.methods?.loadOptions ?? {}),
+			),
+		),
+		resourceMapping: Object.fromEntries(
+			Object.values(Leadtributor.resources).flatMap((r) =>
+				Object.entries(r.methods?.resourceMapping ?? {}),
+			),
+		),
+	};
+
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
