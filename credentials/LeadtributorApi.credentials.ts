@@ -8,6 +8,7 @@ import type {
 export class LeadtributorApi implements ICredentialType {
 	name = 'leadtributorApi';
 	displayName = 'Leadtributor API';
+	// eslint-disable-next-line n8n-nodes-base/cred-class-field-documentation-url-miscased
 	documentationUrl = 'https://developer.leadtributor.cloud';
 
 	properties: INodeProperties[] = [

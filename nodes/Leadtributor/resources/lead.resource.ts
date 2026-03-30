@@ -134,6 +134,12 @@ const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['lead'] } },
 		options: [
 			{
+				name: 'Assign to Sales Partner',
+				value: 'assignToSalesPartner',
+				description: 'Directly assign a lead to a sales partner',
+				action: 'Assign a lead to a sales partner',
+			},
+			{
 				name: 'Create',
 				value: 'create',
 				description: 'Create a new lead',
@@ -156,12 +162,6 @@ const description: INodeProperties[] = [
 				value: 'update',
 				description: 'Update the field lists of a lead',
 				action: 'Update a lead',
-			},
-			{
-				name: 'Assign to Sales Partner',
-				value: 'assignToSalesPartner',
-				description: 'Directly assign a lead to a sales partner',
-				action: 'Assign a lead to a sales partner',
 			},
 		],
 		default: 'getMany',
@@ -317,30 +317,6 @@ const description: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Include Field Lists',
-				name: 'includeFieldLists',
-				type: 'boolean',
-				default: false,
-				description: 'Whether to include prospect and interest field lists in each returned lead',
-			},
-			{
-				displayName: 'Modified At',
-				name: 'modifiedAt',
-				type: 'string',
-				default: '',
-				placeholder: 'gte:2024-01-01',
-				description:
-					'Filter leads by last-modified date. Prefix with an operator: gte:, gt:, lte:, lt:, or eq: (default). Example: gte:2024-01-01',
-			},
-			{
-				displayName: 'Lead Created At',
-				name: 'leadCreatedAt',
-				type: 'string',
-				default: '',
-				placeholder: 'gte:2024-01-01',
-				description: 'Filter by lead creation date. Prefix with an operator: gte:, gt:, lte:, lt:, or eq:',
-			},
-			{
 				displayName: 'Commission Responsible',
 				name: 'commissionResponsible',
 				type: 'string',
@@ -355,6 +331,30 @@ const description: INodeProperties[] = [
 				default: '',
 				description: 'Filter by the current pipeline step name of the commission',
 				placeholder: 'Contact',
+			},
+			{
+				displayName: 'Include Field Lists',
+				name: 'includeFieldLists',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to include prospect and interest field lists in each returned lead',
+			},
+			{
+				displayName: 'Lead Created At',
+				name: 'leadCreatedAt',
+				type: 'string',
+				default: '',
+				placeholder: 'gte:2024-01-01',
+				description: 'Filter by lead creation date. Prefix with an operator (gte:, gt:, lte:, lt:, or eq:).',
+			},
+			{
+				displayName: 'Modified At',
+				name: 'modifiedAt',
+				type: 'string',
+				default: '',
+				placeholder: 'gte:2024-01-01',
+				description:
+					'Filter leads by last-modified date. Prefix with an operator (gte:, gt:, lte:, lt:, or eq: (default)). Example: gte:2024-01-01',
 			},
 			{
 				displayName: 'Sort',
