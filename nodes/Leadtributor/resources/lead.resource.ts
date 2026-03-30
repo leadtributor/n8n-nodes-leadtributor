@@ -38,7 +38,12 @@ interface LtForm {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const formCache = new WeakMap<ILoadOptionsFunctions | IExecuteFunctions, LtForm>();
+
 async function fetchFirstForm(context: ILoadOptionsFunctions | IExecuteFunctions, baseUrl: string): Promise<LtForm> {
+	const cached = formCache.get(context);
+	if (cached) return cached;
+
 	const forms = (await context.helpers.httpRequestWithAuthentication.call(
 		context,
 		'leadtributorApi',
@@ -47,6 +52,7 @@ async function fetchFirstForm(context: ILoadOptionsFunctions | IExecuteFunctions
 	if (!forms.length) {
 		throw new Error('No forms found in your Leadtributor account.');
 	}
+	formCache.set(context, forms[0]);
 	return forms[0];
 }
 
