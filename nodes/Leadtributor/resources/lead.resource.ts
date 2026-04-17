@@ -152,6 +152,12 @@ const description: INodeProperties[] = [
 				action: 'Get a lead',
 			},
 			{
+				name: 'Get Duplicates',
+				value: 'getLeadDuplicates',
+				description: 'Get potential duplicate candidates for a lead',
+				action: 'Get lead duplicates',
+			},
+			{
 				name: 'Get Many',
 				value: 'getMany',
 				description: 'List leads with optional filters',
@@ -212,9 +218,42 @@ const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['lead'],
-				operation: ['get', 'update', 'assignToSalesPartner'],
+				operation: ['get', 'getLeadDuplicates', 'update', 'assignToSalesPartner'],
 			},
 		},
+	},
+
+	// ── getLeadDuplicates ─────────────────────────────────────────────────────
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['getLeadDuplicates'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Max Distance',
+				name: 'maxDistanceKm',
+				type: 'number',
+				default: 50,
+				typeOptions: { minValue: 1 },
+				description: 'Maximum distance in kilometers for location-based matching (default: 50)',
+			},
+			{
+				displayName: 'Min Score',
+				name: 'minScore',
+				type: 'number',
+				default: 20,
+				typeOptions: { minValue: 1, maxValue: 100 },
+				description: 'Minimum duplicate score (1–100) a candidate must reach to be included (default: 20)',
+			},
+		],
 	},
 	{
 		displayName: 'Prospect Fields',
@@ -424,6 +463,22 @@ async function execute(
 		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
 			method: 'GET',
 			url: `${baseUrl}/leads/${encodeURIComponent(leadId)}`,
+			json: true,
+		});
+	}
+
+	if (operation === 'getLeadDuplicates') {
+		const leadId = this.getNodeParameter('leadId', i) as string;
+		const options = this.getNodeParameter('options', i) as IDataObject;
+
+		const qs: IDataObject = {};
+		if (options.maxDistanceKm !== undefined) qs.maxDistanceKm = options.maxDistanceKm;
+		if (options.minScore !== undefined) qs.minScore = options.minScore;
+
+		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'GET',
+			url: `${baseUrl}/leads/${encodeURIComponent(leadId)}/duplicates`,
+			qs,
 			json: true,
 		});
 	}
