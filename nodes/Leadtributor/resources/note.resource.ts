@@ -16,6 +16,12 @@ const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['note'] } },
 		options: [
 			{
+				name: 'Add to Lead',
+				value: 'create',
+				description: 'Add a note to a lead',
+				action: 'Add a note to a lead',
+			},
+			{
 				name: 'Get Many',
 				value: 'getMany',
 				description: 'List notes across all leads',
@@ -36,11 +42,39 @@ const description: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: '',
-		description: 'The unique ID of the lead whose notes to list',
+		description: 'The unique ID of the lead',
 		displayOptions: {
 			show: {
 				resource: ['note'],
-				operation: ['getManyByLead'],
+				operation: ['create', 'getManyByLead'],
+			},
+		},
+	},
+	{
+		displayName: 'Text',
+		name: 'text',
+		type: 'string',
+		required: true,
+		default: '',
+		description: 'Text of the note',
+		typeOptions: { rows: 4 },
+		displayOptions: {
+			show: {
+				resource: ['note'],
+				operation: ['create'],
+			},
+		},
+	},
+	{
+		displayName: 'Internal',
+		name: 'intern',
+		type: 'boolean',
+		default: false,
+		description: 'Whether the note is internal and only visible to your company',
+		displayOptions: {
+			show: {
+				resource: ['note'],
+				operation: ['create'],
 			},
 		},
 	},
@@ -102,6 +136,22 @@ async function execute(
 	operation: string,
 	baseUrl: string,
 ): Promise<unknown> {
+	if (operation === 'create') {
+		const leadId = this.getNodeParameter('leadId', i) as string;
+		const text = this.getNodeParameter('text', i) as string;
+		const intern = this.getNodeParameter('intern', i) as boolean;
+
+		const body: IDataObject = { text };
+		if (intern) body.intern = true;
+
+		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'POST',
+			url: `${baseUrl}/leads/${encodeURIComponent(leadId)}/notes`,
+			body,
+			json: true,
+		});
+	}
+
 	if (operation === 'getMany') {
 		const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 		const filters = this.getNodeParameter('filters', i) as IDataObject;
