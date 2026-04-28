@@ -13,6 +13,7 @@ import form from './resources/form.resource';
 import lead from './resources/lead.resource';
 import market from './resources/market.resource';
 import note from './resources/note.resource';
+import salesPartner from './resources/salesPartner.resource';
 import webhook from './resources/webhook.resource';
 
 export class Leadtributor implements INodeType {
@@ -21,6 +22,7 @@ export class Leadtributor implements INodeType {
 		lead,
 		market,
 		note,
+		salesPartner,
 		webhook,
 	};
 
