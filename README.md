@@ -1,20 +1,80 @@
 # n8n-nodes-leadtributor
 
-This is an n8n community node for integrating with the [leadtributor.cloud](https://leadtributor.cloud) platform.
+This is an n8n community node that lets you integrate [leadtributor.cloud](https://leadtributor.cloud) into your n8n workflows.
 
-[leadtributor.cloud](https://leadtributor.cloud) is a B2B software solution for lead distribution and forecasting management.
+[leadtributor.cloud](https://leadtributor.cloud) is a B2B SaaS platform for lead distribution and partner relationship management (PRM), helping companies route inbound leads to the right sales partners and track them through the funnel.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
----
+[Installation](#installation) · [Operations](#operations) · [Credentials](#credentials) · [Compatibility](#compatibility) · [Usage](#usage) · [Resources](#resources)
 
 ## Installation
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
+In n8n, install the package:
+
 ```
-n8n-nodes-leadtributor
+@leadtributor/n8n-nodes-leadtributor
 ```
+
+## Operations
+
+The node exposes the following resources and operations.
+
+### Lead
+
+| Operation | Description |
+|-----------|-------------|
+| Assign to Sales Partner | Directly assign a lead to a sales partner |
+| Create | Create a new lead |
+| Get | Get a lead by ID |
+| Get Duplicates | Get potential duplicate candidates for a lead |
+| Get Many | List leads with optional filters |
+| Update | Update the field lists of a lead |
+
+For **Create** and **Update**, the input can be provided in two modes:
+
+- **Form Mapper** — pick fields dynamically from a leadtributor form (recommended for visual mapping in n8n)
+- **Raw JSON** — provide prospect/interest fields as a raw JSON object (advanced)
+
+### Form
+
+| Operation | Description |
+|-----------|-------------|
+| Get Many | List all forms defined by your company |
+
+### Sales Partner
+
+| Operation | Description |
+|-----------|-------------|
+| Get | Get a sales partner by ID |
+| Get Many | List sales partners |
+| Invite | Send an email invitation to a potential sales partner |
+| Update | Update tags and attributes of a sales partner |
+| End | End an active sales partner relationship |
+| Delete | Delete a sales partner (only allowed when ENDED, PENDING or DECLINED) |
+
+### Note
+
+| Operation | Description |
+|-----------|-------------|
+| Add to Lead | Add a note to a lead |
+| Get Many | List notes across all leads |
+| Get Many for Lead | List notes of a specific lead |
+
+### Market
+
+| Operation | Description |
+|-----------|-------------|
+| Offer Lead | Offer a lead on a market for distribution to sales partners |
+
+### Webhook
+
+| Operation | Description |
+|-----------|-------------|
+| Subscribe | Subscribe to a webhook event |
+| Unsubscribe | Unsubscribe from a webhook event by hook ID |
 
 ## Credentials
 
@@ -22,55 +82,38 @@ To use this node, you need a **leadtributor API Key**:
 
 1. Log in to your [leadtributor.cloud](https://leadtributor.cloud) account.
 2. Navigate to your account settings and generate an API Key.
-3. In n8n, add new credentials of type **leadtributor API**.
-4. Enter your API Key and (optionally) the base URL.
+3. In n8n, add new credentials of type **Leadtributor API**.
+4. Enter your API Key and (optionally) override the base URL.
 
-| Field    | Description                                       | Default                              |
-|----------|---------------------------------------------------|--------------------------------------|
-| API Key  | Your leadtributor API Key                         | –                                    |
-| Base URL | Base URL of the leadtributor API                  | `https://api.leadtributor.cloud`     |
+| Field    | Description                                                                  | Default                          |
+|----------|------------------------------------------------------------------------------|----------------------------------|
+| API Key  | Your leadtributor API Key. Sent as the value of the `Authorization` header.  | –                                |
+| Base URL | Base URL of the leadtributor API. Use `https://api.demo.leadtributor.cloud` for the demo environment. | `https://api.leadtributor.cloud` |
 
-## Operations
+The credential includes a built-in connection test against `GET /test`.
 
-> **Note:** This is an initial scaffold. Resources and operations are placeholders and will be
-> replaced with actual leadtributor API endpoints.
-> See [https://developer.leadtributor.cloud](https://developer.leadtributor.cloud) for the API reference.
+## Compatibility
 
-### Example Resource *(placeholder)*
+- Requires **n8n 1.0** or later.
+- Tested against **n8n 1.x**.
+- Requires **Node.js 20** or later.
 
-| Operation | Description                  |
-|-----------|------------------------------|
-| Create    | Create a new record          |
-| Delete    | Delete a record by ID        |
-| Get       | Retrieve a single record     |
-| Get Many  | Retrieve multiple records    |
-| Update    | Update an existing record    |
+## Usage
 
-## Development
+A typical lead-intake workflow:
 
-```bash
-# Install dependencies
-npm install
+1. **Trigger** — receive a lead from a website form, CRM, or messaging channel.
+2. **leadtributor — Lead → Create** — create the lead in leadtributor using the Form Mapper to map your incoming fields to a form.
+3. *(Optional)* **leadtributor — Market → Offer Lead** — offer the new lead on a market for sales-partner distribution.
+4. *(Optional)* **leadtributor — Note → Add to Lead** — attach context, source attribution, or follow-up info as a note.
 
-# Build
-npm run build
+For real-time integrations, use **Webhook → Subscribe** to receive lead status changes directly into n8n.
 
-# Build in watch mode
-npm run dev
+### AI Agent compatible
 
-# Lint
-npm run lint
+This node can be used as a tool by n8n's [AI Agent](https://docs.n8n.io/advanced-ai/examples/agent-chat/). The agent can autonomously decide which leadtributor operation to call based on the conversation context — for example, creating a lead from a chat message or looking up potential duplicates before deduplication.
 
-# Format
-npm run format
-```
-
-To test locally, copy (or symlink) the `dist/` folder into your n8n custom extensions directory and start n8n:
-
-```bash
-export N8N_CUSTOM_EXTENSIONS="/path/to/n8n-nodes-leadtributor"
-n8n start
-```
+See the [leadtributor API reference](https://developer.leadtributor.cloud) for the full schema of each resource.
 
 ## Resources
 

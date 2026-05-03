@@ -197,11 +197,9 @@ const description: INodeProperties[] = [
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function extractApiError(error: unknown): string {
-	const e = error as any;
-	// NodeApiError: description has the API message only when context.data is set (JSON response body)
-	// For all other cases (auth errors, network errors), fall back to the generic HTTP status message
+	const e = error as { context?: { data?: unknown }; description?: unknown; message?: unknown };
 	if (e?.context?.data && typeof e?.description === 'string') return e.description;
-	return e?.message ?? 'Unknown error';
+	return typeof e?.message === 'string' ? e.message : 'Unknown error';
 }
 
 // ── Execute ───────────────────────────────────────────────────────────────────

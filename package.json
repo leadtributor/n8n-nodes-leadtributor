@@ -1,6 +1,6 @@
 {
   "name": "@leadtributor/n8n-nodes-leadtributor",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "n8n community node for leadtributor.cloud integration",
   "keywords": [
     "n8n-community-node-package",
@@ -32,15 +32,15 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run copy:icons",
-    "copy:icons": "node scripts/copy-icons.js",
-    "dev": "tsc -p tsconfig.json --watch",
+    "build": "n8n-node build",
+    "dev": "n8n-node dev",
     "format": "prettier nodes credentials --write",
-    "lint": "eslint nodes credentials package.json --ext .ts",
-    "lintfix": "eslint nodes credentials package.json --ext .ts --fix"
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
+    "strict": true,
     "credentials": [
       "dist/credentials/LeadtributorApi.credentials.js"
     ],
@@ -49,10 +49,9 @@
     ]
   },
   "devDependencies": {
+    "@n8n/node-cli": "^0.28.0",
     "@types/node": "^20",
-    "@typescript-eslint/parser": "^6.7.0",
-    "eslint": "^8.57.1",
-    "eslint-plugin-n8n-nodes-base": "^1.16.0",
+    "eslint": "^9.32.0",
     "n8n-workflow": "*",
     "prettier": "^3.0.3",
     "typescript": "^5.1.6"

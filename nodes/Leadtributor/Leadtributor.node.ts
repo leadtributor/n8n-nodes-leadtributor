@@ -6,7 +6,7 @@ import type {
 	IDataObject,
 	JsonObject,
 } from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import type { ResourceModule } from './resources/types';
 import form from './resources/form.resource';
@@ -35,8 +35,8 @@ export class Leadtributor implements INodeType {
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Interact with the leadtributor.cloud API for lead management',
 		defaults: { name: 'leadtributor.cloud' },
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'leadtributorApi', required: true }],
 		properties: [
 			{
@@ -49,6 +49,7 @@ export class Leadtributor implements INodeType {
 			},
 			...Object.values(Leadtributor.resources).flatMap((r) => r.description),
 		],
+		usableAsTool: true,
 	};
 
 	methods: INodeType['methods'] = {

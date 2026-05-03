@@ -2,14 +2,15 @@ import type {
 	IAuthenticateGeneric,
 	ICredentialTestRequest,
 	ICredentialType,
+	Icon,
 	INodeProperties,
 } from 'n8n-workflow';
 
 export class LeadtributorApi implements ICredentialType {
 	name = 'leadtributorApi';
 	displayName = 'Leadtributor API';
-	// eslint-disable-next-line n8n-nodes-base/cred-class-field-documentation-url-miscased
 	documentationUrl = 'https://developer.leadtributor.cloud';
+	icon: Icon = 'file:icon.svg';
 
 	properties: INodeProperties[] = [
 		{
@@ -32,8 +33,6 @@ export class LeadtributorApi implements ICredentialType {
 		},
 	];
 
-	// The API uses an apiKey security scheme with the key sent directly
-	// in the Authorization header (no Bearer prefix).
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
 		properties: {
