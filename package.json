@@ -3,7 +3,12 @@
   "version": "0.5.0",
   "description": "n8n community node for leadtributor.cloud integration",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "leadtributor",
+    "leadmanagement",
+    "partnermanagement",
+    "prm",
+    "sales"
   ],
   "license": "MIT",
   "homepage": "https://github.com/leadtributor/n8n-nodes-leadtributor",
@@ -13,6 +18,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/leadtributor/n8n-nodes-leadtributor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leadtributor/n8n-nodes-leadtributor/issues"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public"
@@ -26,8 +37,7 @@
     "dev": "tsc -p tsconfig.json --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json --ext .ts",
-    "lintfix": "eslint nodes credentials package.json --ext .ts --fix",
-    "prepublishOnly": "npm run build && npm run lint"
+    "lintfix": "eslint nodes credentials package.json --ext .ts --fix"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
@@ -39,9 +49,9 @@
     ]
   },
   "devDependencies": {
-    "@types/node": "^18.16.16",
+    "@types/node": "^20",
     "@typescript-eslint/parser": "^6.7.0",
-    "copyfiles": "^2.4.1",
+    "eslint": "^8.57.1",
     "eslint-plugin-n8n-nodes-base": "^1.16.0",
     "n8n-workflow": "*",
     "prettier": "^3.0.3",
