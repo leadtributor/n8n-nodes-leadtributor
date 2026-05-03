@@ -173,13 +173,51 @@ const description: INodeProperties[] = [
 		default: 'getMany',
 	},
 
-	// ── create ────────────────────────────────────────────────────────────────
+	// ── get / update / getLeadDuplicates / assignToSalesPartner ──────────────
+	{
+		displayName: 'Lead ID',
+		name: 'leadId',
+		type: 'string',
+		required: true,
+		default: '',
+		description: 'The unique ID of the lead (UUID)',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['get', 'getLeadDuplicates', 'update', 'assignToSalesPartner'],
+			},
+		},
+	},
+
+	// ── create / update ───────────────────────────────────────────────────────
+	{
+		displayName: 'Input Mode',
+		name: 'inputMode',
+		type: 'options',
+		noDataExpression: true,
+		displayOptions: { show: { resource: ['lead'], operation: ['create', 'update'] } },
+		options: [
+			{
+				name: 'Form Mapper',
+				value: 'mapper',
+				description: 'Pick fields dynamically from your Leadtributor form',
+			},
+			{
+				name: 'Raw JSON',
+				value: 'raw',
+				description: 'Provide prospect/interest fields as raw JSON (advanced)',
+			},
+		],
+		default: 'mapper',
+	},
 	{
 		displayName: 'Prospect Fields',
 		name: 'prospectMapper',
 		type: 'resourceMapper',
 		default: { mappingMode: 'defineBelow', value: null },
-		displayOptions: { show: { resource: ['lead'], operation: ['create'] } },
+		displayOptions: {
+			show: { resource: ['lead'], operation: ['create', 'update'], inputMode: ['mapper'] },
+		},
 		typeOptions: {
 			resourceMapper: {
 				resourceMapperMethod: 'getProspectFields',
@@ -195,7 +233,9 @@ const description: INodeProperties[] = [
 		name: 'interestMapper',
 		type: 'resourceMapper',
 		default: { mappingMode: 'defineBelow', value: null },
-		displayOptions: { show: { resource: ['lead'], operation: ['create'] } },
+		displayOptions: {
+			show: { resource: ['lead'], operation: ['create', 'update'], inputMode: ['mapper'] },
+		},
 		typeOptions: {
 			resourceMapper: {
 				resourceMapperMethod: 'getInterestFields',
@@ -206,20 +246,26 @@ const description: INodeProperties[] = [
 			},
 		},
 	},
-
-	// ── get / update / assignToSalesPartner ──────────────────────────────────
 	{
-		displayName: 'Lead ID',
-		name: 'leadId',
-		type: 'string',
-		required: true,
-		default: '',
-		description: 'The unique ID of the lead (UUID)',
+		displayName: 'Prospect Fields',
+		name: 'prospectFields',
+		type: 'json',
+		default: '{}',
+		description:
+			'Fields describing the contact person or company. Each key is a field name; each value is an object with "type" and "value". Example: {"Vorname": {"type": "text:singleline:firstname", "value": "Max"}}',
 		displayOptions: {
-			show: {
-				resource: ['lead'],
-				operation: ['get', 'getLeadDuplicates', 'update', 'assignToSalesPartner'],
-			},
+			show: { resource: ['lead'], operation: ['create', 'update'], inputMode: ['raw'] },
+		},
+	},
+	{
+		displayName: 'Interest Fields',
+		name: 'interestFields',
+		type: 'json',
+		default: '{}',
+		description:
+			'Fields describing the prospect\'s interest or request. Each key is a field name; each value is an object with "type" and "value". Example: {"Anfrage": {"type": "text:multiline", "value": "Bitte um Angebot"}}',
+		displayOptions: {
+			show: { resource: ['lead'], operation: ['create', 'update'], inputMode: ['raw'] },
 		},
 	},
 
@@ -255,35 +301,6 @@ const description: INodeProperties[] = [
 			},
 		],
 	},
-	{
-		displayName: 'Prospect Fields',
-		name: 'prospectFields',
-		type: 'json',
-		default: '{}',
-		description:
-			'Fields describing the contact person or company. Each key is a field name; each value is an object with "type" and "value". Example: {"Vorname": {"type": "text:singleline:firstname", "value": "Max"}}',
-		displayOptions: {
-			show: {
-				resource: ['lead'],
-				operation: ['update'],
-			},
-		},
-	},
-	{
-		displayName: 'Interest Fields',
-		name: 'interestFields',
-		type: 'json',
-		default: '{}',
-		description:
-			'Fields describing the prospect\'s interest or request. Each key is a field name; each value is an object with "type" and "value". Example: {"Anfrage": {"type": "text:multiline", "value": "Bitte um Angebot"}}',
-		displayOptions: {
-			show: {
-				resource: ['lead'],
-				operation: ['update'],
-			},
-		},
-	},
-
 	// ── assignToSalesPartner ─────────────────────────────────────────────────
 	{
 		displayName: 'Sales Partner ID',
@@ -429,6 +446,68 @@ const methods = {
 
 // ── Execute ───────────────────────────────────────────────────────────────────
 
+type LeadSectionPayload = { fields: IDataObject; fieldOrder?: string[] };
+
+function parseRawFields(
+	context: IExecuteFunctions,
+	i: number,
+	parameterName: string,
+	label: string,
+): IDataObject {
+	const raw = context.getNodeParameter(parameterName, i);
+	if (raw === undefined || raw === null || raw === '') return {};
+
+	let value: unknown = raw;
+	if (typeof raw === 'string') {
+		try {
+			value = JSON.parse(raw);
+		} catch (e) {
+			throw new NodeOperationError(
+				context.getNode(),
+				`${label} contains invalid JSON: ${(e as Error).message}`,
+				{ itemIndex: i },
+			);
+		}
+	}
+
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		throw new NodeOperationError(context.getNode(), `${label} must be a JSON object`, {
+			itemIndex: i,
+		});
+	}
+	return value as IDataObject;
+}
+
+async function resolveLeadSections(
+	context: IExecuteFunctions,
+	i: number,
+	baseUrl: string,
+): Promise<{ prospect: LeadSectionPayload; interest: LeadSectionPayload }> {
+	const inputMode = context.getNodeParameter('inputMode', i) as 'mapper' | 'raw';
+
+	if (inputMode === 'raw') {
+		return {
+			prospect: { fields: parseRawFields(context, i, 'prospectFields', 'Prospect Fields') },
+			interest: { fields: parseRawFields(context, i, 'interestFields', 'Interest Fields') },
+		};
+	}
+
+	const prospectMapper = context.getNodeParameter('prospectMapper', i) as IDataObject;
+	const interestMapper = context.getNodeParameter('interestMapper', i) as IDataObject;
+	const form = await fetchFirstForm(context, baseUrl);
+
+	return {
+		prospect: buildSectionPayload(
+			(prospectMapper.value ?? {}) as IDataObject,
+			form.definition.prospect,
+		),
+		interest: buildSectionPayload(
+			(interestMapper.value ?? {}) as IDataObject,
+			form.definition.interest,
+		),
+	};
+}
+
 async function execute(
 	this: IExecuteFunctions,
 	i: number,
@@ -436,19 +515,7 @@ async function execute(
 	baseUrl: string,
 ): Promise<unknown> {
 	if (operation === 'create') {
-		const prospectMapper = this.getNodeParameter('prospectMapper', i) as IDataObject;
-		const interestMapper = this.getNodeParameter('interestMapper', i) as IDataObject;
-
-		const form = await fetchFirstForm(this, baseUrl);
-
-		const prospect = buildSectionPayload(
-			(prospectMapper.value ?? {}) as IDataObject,
-			form.definition.prospect,
-		);
-		const interest = buildSectionPayload(
-			(interestMapper.value ?? {}) as IDataObject,
-			form.definition.interest,
-		);
+		const { prospect, interest } = await resolveLeadSections(this, i, baseUrl);
 
 		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
 			method: 'POST',
@@ -531,16 +598,11 @@ async function execute(
 
 	if (operation === 'update') {
 		const leadId = this.getNodeParameter('leadId', i) as string;
-		const prospectFields = this.getNodeParameter('prospectFields', i) as IDataObject;
-		const interestFields = this.getNodeParameter('interestFields', i) as IDataObject;
+		const { prospect, interest } = await resolveLeadSections(this, i, baseUrl);
 
 		const body: IDataObject = {};
-		if (Object.keys(prospectFields).length > 0) {
-			body.prospect = { fields: prospectFields };
-		}
-		if (Object.keys(interestFields).length > 0) {
-			body.interest = { fields: interestFields };
-		}
+		if (Object.keys(prospect.fields).length > 0) body.prospect = prospect;
+		if (Object.keys(interest.fields).length > 0) body.interest = interest;
 
 		// PATCH /leads/{leadId} returns 204 No Content on success
 		await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
