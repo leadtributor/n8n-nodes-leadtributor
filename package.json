@@ -14,7 +14,12 @@
     "type": "git",
     "url": "https://github.com/leadtributor/n8n-nodes-leadtributor.git"
   },
-  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run copy:icons",
     "copy:icons": "node scripts/copy-icons.js",
