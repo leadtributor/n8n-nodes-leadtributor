@@ -194,14 +194,6 @@ const description: INodeProperties[] = [
 	},
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function extractApiError(error: unknown): string {
-	const e = error as { context?: { data?: unknown }; description?: unknown; message?: unknown };
-	if (e?.context?.data && typeof e?.description === 'string') return e.description;
-	return typeof e?.message === 'string' ? e.message : 'Unknown error';
-}
-
 // ── Execute ───────────────────────────────────────────────────────────────────
 
 async function execute(
@@ -220,16 +212,12 @@ async function execute(
 		if (additionalFields.tags) body.tags = JSON.parse(additionalFields.tags as string);
 		if (additionalFields.attributes) body.attributes = JSON.parse(additionalFields.attributes as string);
 
-		try {
-			return await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
-				method: 'POST',
-				url: `${baseUrl}/sales-partners`,
-				body,
-				json: true,
-			});
-		} catch (error) {
-			throw new NodeOperationError(this.getNode(), extractApiError(error), { itemIndex: i });
-		}
+		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'POST',
+			url: `${baseUrl}/sales-partners`,
+			body,
+			json: true,
+		});
 	}
 
 	if (operation === 'get') {
@@ -269,17 +257,13 @@ async function execute(
 		const headers: IDataObject = {};
 		if (options.serial) headers['x-serial'] = String(options.serial);
 
-		try {
-			await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
-				method: 'PATCH',
-				url: `${baseUrl}/sales-partners/${encodeURIComponent(salesPartnerId)}`,
-				body,
-				headers,
-				json: true,
-			});
-		} catch (error) {
-			throw new NodeOperationError(this.getNode(), extractApiError(error), { itemIndex: i });
-		}
+		await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'PATCH',
+			url: `${baseUrl}/sales-partners/${encodeURIComponent(salesPartnerId)}`,
+			body,
+			headers,
+			json: true,
+		});
 		return { success: true, salesPartnerId };
 	}
 
@@ -290,17 +274,13 @@ async function execute(
 		const headers: IDataObject = {};
 		if (options.serial) headers['x-serial'] = String(options.serial);
 
-		try {
-			await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
-				method: 'POST',
-				url: `${baseUrl}/sales-partners/${encodeURIComponent(salesPartnerId)}/end`,
-				body: {},
-				headers,
-				json: true,
-			});
-		} catch (error) {
-			throw new NodeOperationError(this.getNode(), extractApiError(error), { itemIndex: i });
-		}
+		await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'POST',
+			url: `${baseUrl}/sales-partners/${encodeURIComponent(salesPartnerId)}/end`,
+			body: {},
+			headers,
+			json: true,
+		});
 		return { success: true, salesPartnerId };
 	}
 
@@ -311,16 +291,12 @@ async function execute(
 		const headers: IDataObject = {};
 		if (options.serial) headers['x-serial'] = String(options.serial);
 
-		try {
-			await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
-				method: 'DELETE',
-				url: `${baseUrl}/sales-partners/${encodeURIComponent(salesPartnerId)}`,
-				headers,
-				json: true,
-			});
-		} catch (error) {
-			throw new NodeOperationError(this.getNode(), extractApiError(error), { itemIndex: i });
-		}
+		await this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
+			method: 'DELETE',
+			url: `${baseUrl}/sales-partners/${encodeURIComponent(salesPartnerId)}`,
+			headers,
+			json: true,
+		});
 		return { success: true, salesPartnerId };
 	}
 
