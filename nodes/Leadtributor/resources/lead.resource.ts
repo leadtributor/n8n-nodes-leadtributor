@@ -252,7 +252,7 @@ const description: INodeProperties[] = [
 		type: 'json',
 		default: '{}',
 		description:
-			'Fields describing the contact person or company. Each key is a field name; each value is an object with "type" and "value". Example: {"Vorname": {"type": "text:singleline:firstname", "value": "Max"}}',
+			'Fields describing the contact person or company. Each key is a field name; each value is an object with "type" and "value". Example: {"FirstName": {"type": "text:singleline:firstname", "value": "Max"}}',
 		displayOptions: {
 			show: { resource: ['lead'], operation: ['create', 'update'], inputMode: ['raw'] },
 		},
@@ -263,7 +263,7 @@ const description: INodeProperties[] = [
 		type: 'json',
 		default: '{}',
 		description:
-			'Fields describing the prospect\'s interest or request. Each key is a field name; each value is an object with "type" and "value". Example: {"Anfrage": {"type": "text:multiline", "value": "Bitte um Angebot"}}',
+			'Fields describing the prospect\'s interest or request. Each key is a field name; each value is an object with "type" and "value". Example: {"Inquiry": {"type": "text:multiline", "value": "Please send a quote"}}',
 		displayOptions: {
 			show: { resource: ['lead'], operation: ['create', 'update'], inputMode: ['raw'] },
 		},
