@@ -26,7 +26,7 @@ The node exposes the following resources and operations.
 
 | Operation | Description |
 |-----------|-------------|
-| Assign to Sales Partner | Directly assign a lead to a sales partner |
+| Assign to Sales Partner | Directly assign a lead to a sales partner, which creates an opportunity |
 | Create | Create a new lead |
 | Get | Get a lead by ID |
 | Get Duplicates | Get potential duplicate candidates for a lead |

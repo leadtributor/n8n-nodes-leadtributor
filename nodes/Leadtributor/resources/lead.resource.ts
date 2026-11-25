@@ -136,7 +136,7 @@ const description: INodeProperties[] = [
 			{
 				name: 'Assign to Sales Partner',
 				value: 'assignToSalesPartner',
-				description: 'Directly assign a lead to a sales partner',
+				description: 'Directly assign a lead to a sales partner, which creates an opportunity',
 				action: 'Assign a lead to a sales partner',
 			},
 			{
@@ -373,22 +373,6 @@ const description: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Commission Responsible',
-				name: 'commissionResponsible',
-				type: 'string',
-				default: '',
-				description: 'Filter by the URN of the sales partner responsible for the commission',
-				placeholder: 'urn:lt:sales-partners:sales-partner:740fc051-24eb-4a6a-b345-b8305c097269',
-			},
-			{
-				displayName: 'Commission Step Name',
-				name: 'commissionStepName',
-				type: 'string',
-				default: '',
-				description: 'Filter by the current pipeline step name of the commission',
-				placeholder: 'Contact',
-			},
-			{
 				displayName: 'Include Field Lists',
 				name: 'includeFieldLists',
 				type: 'boolean',
@@ -413,13 +397,31 @@ const description: INodeProperties[] = [
 					'Filter leads by last-modified date. Prefix with an operator (gte:, gt:, lte:, lt:, or eq: (default)). Example: gte:2024-01-01',
 			},
 			{
+				// The parameter names keep their "commission" spelling so saved workflows keep working;
+				// the labels and the request carry the new name, "opportunity" (25.11.2026).
+				displayName: 'Opportunity Responsible',
+				name: 'commissionResponsible',
+				type: 'string',
+				default: '',
+				description: 'Filter by the URN of the sales partner responsible for the opportunity',
+				placeholder: 'urn:lt:sales-partners:sales-partner:740fc051-24eb-4a6a-b345-b8305c097269',
+			},
+			{
+				displayName: 'Opportunity Step Name',
+				name: 'commissionStepName',
+				type: 'string',
+				default: '',
+				description: 'Filter by the current pipeline step name of the opportunity',
+				placeholder: 'Contact',
+			},
+			{
 				displayName: 'Sort',
 				name: 'sort',
 				type: 'string',
 				default: '',
 				placeholder: '-modifiedAt',
 				description:
-					'Sort field(s), comma-separated. Prefix with - for descending or + for ascending. Supported: modifiedAt, lead.leadId, lead.createdAt, lead.modifiedAt, commission.startedAt',
+					'Sort field(s), comma-separated. Prefix with - for descending or + for ascending. Supported: modifiedAt, lead.leadId, lead.createdAt, lead.modifiedAt, opportunity.startedAt (commission.startedAt is a deprecated synonym, retired after a transition period following 2027-01-04)',
 			},
 		],
 	},
@@ -558,8 +560,8 @@ async function execute(
 		if (filters.includeFieldLists) qs.includeFieldLists = true;
 		if (filters.modifiedAt) qs.modifiedAt = filters.modifiedAt;
 		if (filters.leadCreatedAt) qs['lead.createdAt'] = filters.leadCreatedAt;
-		if (filters.commissionResponsible) qs['commission.responsible'] = filters.commissionResponsible;
-		if (filters.commissionStepName) qs['commission.stepName'] = filters.commissionStepName;
+		if (filters.commissionResponsible) qs['opportunity.responsible'] = filters.commissionResponsible;
+		if (filters.commissionStepName) qs['opportunity.stepName'] = filters.commissionStepName;
 		if (filters.sort) qs.sort = filters.sort;
 
 		const allResults: IDataObject[] = [];
@@ -624,7 +626,7 @@ async function execute(
 
 		return this.helpers.httpRequestWithAuthentication.call(this, 'leadtributorApi', {
 			method: 'POST',
-			url: `${baseUrl}/leads/${encodeURIComponent(leadId)}/commissions`,
+			url: `${baseUrl}/leads/${encodeURIComponent(leadId)}/opportunities`,
 			body,
 			json: true,
 		});
